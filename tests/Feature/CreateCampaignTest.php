@@ -23,7 +23,7 @@ class CreateCampaign extends TestCase
     {
         $faker = \Faker\Factory::create();
         $user = factory(User::class)->create();
-        $this->actingAs($user, 'web');
+        $this->actingAs($user, 'api');
         $response = $this->json('POST', route('campaign.create'), [
             'title' => $faker->name,
             'description' => $faker->paragraph(),

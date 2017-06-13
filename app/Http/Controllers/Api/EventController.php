@@ -8,6 +8,9 @@ use App\Http\Controllers\AbstractController;
 use App\Repositories\Contracts\EventInterface;
 use App\Repositories\Contracts\QualityInterface;
 use App\Repositories\Contracts\CampaignInterface;
+use Illuminate\Http\Request;
+use App\Http\Requests\UpdateEventRequest;
+use App\Traits\Common\UploadableTrait;
 
 class EventController extends ApiController
 {
@@ -40,6 +43,39 @@ class EventController extends ApiController
             }
 
             $this->compacts['event'] = $this->eventRepository->create($input);
+        });
+    }      
+
+    public function update(EventRequest $request, $id)
+    {
+        $data = $request->only('title', 'description', 'longitude',
+            'latitude', 'mediaAdds','mediaDels', 'goalDels', 'goalUpdates', 'goalAdds');
+        $event = $this->eventRepository->getEventExist($id);
+
+        if ($this->user->cannot('manage', $event)) {
+            throw new UnknowException('Permission error: User can not edit this event.');
+        }
+
+        return $this->doAction(function () use ($event, $data) {
+            if (!empty($data['goalAdds'])) {
+                $data['goalAdd'] = $this->qualityRepository->getOrCreate($data['goalAdds']);
+            }
+            
+            if (!empty($data['goalUpdates'])) {
+                $data['goalUpdate'] = $this->qualityRepository->getOrCreate($data['goalUpdates']);
+            }
+
+            $data = array_except($data, ['goalAdds']);
+            $this->compacts['event'] = $this->eventRepository->update($event, $data);
+        });
+    }
+
+    public function  updateSetting(Request $request, $id)
+    {
+        $event = $this->eventRepository->getEventExist($id);
+
+        return $this->doAction(function () use ($event, $request) {
+            $this->compacts['event'] = $this->eventRepository->updateSettings($event, $request->setting);
         });
     }
 }
