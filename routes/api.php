@@ -25,5 +25,7 @@ Route::group(['namespace' => 'Api', 'middleware' => ['auth:api', 'xssProtection'
 
     Route::group(['prefix' => '/event', 'as' => 'event.'], function () {
         Route::post('create', 'EventController@create')->name('create');
+        Route::patch('/update-event/{id}', 'EventController@update')->name('update-event');
+        Route::patch('/update-setting-event/{id}', 'EventController@updateSetting')->name('update-setting');
     });
 });
